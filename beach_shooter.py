@@ -170,21 +170,38 @@ class Cloud:
         pygame.draw.circle(screen, WHITE, (int(self.x - self.size // 3), int(self.y)), self.size // 3)
 
 class PalmTree:
-    """Scrolling palm tree object"""
+    """Scrolling palm tree object - acts as an obstacle"""
     def __init__(self):
         self.x = random.randint(50, SCREEN_WIDTH - 50)
         self.y = random.randint(-200, SCREEN_HEIGHT - 200)
         self.speed = 3
+        # Collision rectangle for the trunk
+        self.rect = pygame.Rect(int(self.x), int(self.y), 15, 80)
+        self.hit_recently = False
+        self.hit_cooldown = 0
 
     def update(self, scroll_speed):
         self.y += scroll_speed
+        # Update collision rectangle position
+        self.rect.y = int(self.y)
+
         if self.y > SCREEN_HEIGHT + 100:
             self.y = -100
             self.x = random.randint(50, SCREEN_WIDTH - 50)
+            self.rect.x = int(self.x)
+            self.rect.y = int(self.y)
+            self.hit_recently = False
+
+        # Update hit cooldown
+        if self.hit_cooldown > 0:
+            self.hit_cooldown -= 1
+            if self.hit_cooldown == 0:
+                self.hit_recently = False
 
     def draw(self, screen):
-        # Trunk
-        pygame.draw.rect(screen, (139, 90, 43), (int(self.x), int(self.y), 15, 80))
+        # Trunk - draw in red if recently hit, otherwise brown
+        trunk_color = (200, 50, 50) if self.hit_recently else (139, 90, 43)
+        pygame.draw.rect(screen, trunk_color, (int(self.x), int(self.y), 15, 80))
         # Leaves
         for angle in range(0, 360, 45):
             end_x = self.x + 7 + int(30 * math.cos(math.radians(angle)))
@@ -323,6 +340,15 @@ class BeachShooter:
             self.player.health -= 20
             if self.player.health <= 0:
                 self.game_over = True
+
+        # Player hitting palm trees (obstacles)
+        for tree in self.palm_trees:
+            if self.player.rect.colliderect(tree.rect) and not tree.hit_recently:
+                self.player.health -= 10
+                tree.hit_recently = True
+                tree.hit_cooldown = 30  # 30 frames cooldown before can hit again
+                if self.player.health <= 0:
+                    self.game_over = True
 
     def run(self):
         """Main game loop"""
