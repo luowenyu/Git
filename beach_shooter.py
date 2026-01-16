@@ -41,6 +41,8 @@ class Player(pygame.sprite.Sprite):
         self.health = 100
         self.max_health = 100
         self.shoot_cooldown = 0
+        self.prev_x = x
+        self.prev_y = y
 
     def draw_player(self):
         """Draw a cartoon surfer character"""
@@ -62,6 +64,10 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         """Update player position based on key presses"""
+        # Save previous position for collision bounce-back
+        self.prev_x = self.rect.x
+        self.prev_y = self.rect.y
+
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -343,12 +349,40 @@ class BeachShooter:
 
         # Player hitting palm trees (obstacles)
         for tree in self.palm_trees:
-            if self.player.rect.colliderect(tree.rect) and not tree.hit_recently:
-                self.player.health -= 10
-                tree.hit_recently = True
-                tree.hit_cooldown = 30  # 30 frames cooldown before can hit again
-                if self.player.health <= 0:
-                    self.game_over = True
+            if self.player.rect.colliderect(tree.rect):
+                if not tree.hit_recently:
+                    # Apply damage
+                    self.player.health -= 10
+                    tree.hit_recently = True
+                    tree.hit_cooldown = 30  # 30 frames cooldown before can hit again
+                    if self.player.health <= 0:
+                        self.game_over = True
+
+                # Bounce back - restore previous position and push back further
+                dx = self.player.rect.x - self.player.prev_x
+                dy = self.player.rect.y - self.player.prev_y
+
+                # Push back to previous position plus extra bounce
+                bounce_strength = 15
+                self.player.rect.x = self.player.prev_x - (dx * 2 if dx != 0 else 0)
+                self.player.rect.y = self.player.prev_y - (dy * 2 if dy != 0 else 0)
+
+                # Additional bounce away from tree center
+                tree_center_x = tree.rect.centerx
+                tree_center_y = tree.rect.centery
+
+                if self.player.rect.centerx < tree_center_x:
+                    self.player.rect.x -= bounce_strength
+                else:
+                    self.player.rect.x += bounce_strength
+
+                if self.player.rect.centery < tree_center_y:
+                    self.player.rect.y -= bounce_strength
+                else:
+                    self.player.rect.y += bounce_strength
+
+                # Keep player on screen after bounce
+                self.player.rect.clamp_ip(pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
 
     def run(self):
         """Main game loop"""

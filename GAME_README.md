@@ -30,7 +30,7 @@ A fun pygame shooting game featuring a surfer defending the beach against sea mo
 1. The beach scrolls continuously - you're traveling down an endless coastline!
 2. Move your surfer character around the screen to dodge enemies
 3. Avoid the sea monsters coming from the top of the screen
-4. **Avoid palm tree obstacles!** Hitting a palm tree deals 10 damage (trees flash red when hit)
+4. **Avoid palm tree obstacles!** Hitting a palm tree deals 10 damage and bounces you back (trees flash red when hit)
 5. Shoot the monsters with water splashes (press SPACEBAR)
 6. Each monster defeated gives you 10 points
 7. Each monster that touches you deals 20 damage
@@ -78,7 +78,7 @@ chmod +x beach_shooter.py
 
 - **Player Health**: Start with 100 HP
 - **Enemy Damage**: Each enemy collision deals 20 damage
-- **Obstacle Damage**: Hitting a palm tree deals 10 damage
+- **Obstacle Damage**: Hitting a palm tree deals 10 damage and bounces player back
 - **Bullet Damage**: Each bullet deals 10 damage to enemies
 - **Enemy Health**: Enemies have 30 HP (3 hits to defeat)
 - **Spawn Rate**: Enemies spawn faster with each wave
@@ -96,14 +96,15 @@ chmod +x beach_shooter.py
   - Fixed sun in the sky
   - Animated ocean waves with scrolling texture
   - Scrolling sandy beach
-  - Multiple palm trees that scroll past (act as obstacles!)
+  - Multiple palm trees that scroll past (act as solid obstacles!)
   - Palm trees flash red when hit by player
+  - Realistic bounce-back physics when colliding with trees
   - Multi-layered parallax scrolling for depth effect
 
 ## 🏆 Tips for High Scores and Distance
 
 1. Keep moving to avoid enemies as the game speeds up
-2. **Watch out for palm trees!** They're obstacles that damage you - plan your route carefully
+2. **Watch out for palm trees!** They're solid obstacles that damage and bounce you back - plan your route carefully
 3. Shoot continuously - there's a short cooldown between shots
 4. Focus on enemies at the top of the screen first
 5. Use the edges of the screen for strategic positioning, but watch for trees!
