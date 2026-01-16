@@ -30,11 +30,12 @@ A fun pygame shooting game featuring a surfer defending the beach against sea mo
 1. The beach scrolls continuously - you're traveling down an endless coastline!
 2. Move your surfer character around the screen to dodge enemies
 3. Avoid the sea monsters coming from the top of the screen
-4. Shoot the monsters with water splashes (press SPACEBAR)
-5. Each monster defeated gives you 10 points
-6. Each monster that touches you deals 20 damage
-7. The game speeds up the further you travel!
-8. Survive as long as possible and travel the farthest distance!
+4. **Avoid palm tree obstacles!** Hitting a palm tree deals 10 damage (trees flash red when hit)
+5. Shoot the monsters with water splashes (press SPACEBAR)
+6. Each monster defeated gives you 10 points
+7. Each monster that touches you deals 20 damage
+8. The game speeds up the further you travel!
+9. Survive as long as possible and travel the farthest distance!
 
 ### Objective
 - Defend the beach from waves of sea monsters
@@ -77,11 +78,13 @@ chmod +x beach_shooter.py
 
 - **Player Health**: Start with 100 HP
 - **Enemy Damage**: Each enemy collision deals 20 damage
+- **Obstacle Damage**: Hitting a palm tree deals 10 damage
 - **Bullet Damage**: Each bullet deals 10 damage to enemies
 - **Enemy Health**: Enemies have 30 HP (3 hits to defeat)
 - **Spawn Rate**: Enemies spawn faster with each wave
 - **Score System**: 10 points per enemy defeated
 - **Wave Progression**: New wave every 100 points
+- **Collision Cooldown**: Palm trees have a brief cooldown after being hit (won't damage multiple times immediately)
 
 ## 🎨 Visual Elements
 
@@ -93,19 +96,21 @@ chmod +x beach_shooter.py
   - Fixed sun in the sky
   - Animated ocean waves with scrolling texture
   - Scrolling sandy beach
-  - Multiple palm trees that scroll past
+  - Multiple palm trees that scroll past (act as obstacles!)
+  - Palm trees flash red when hit by player
   - Multi-layered parallax scrolling for depth effect
 
 ## 🏆 Tips for High Scores and Distance
 
 1. Keep moving to avoid enemies as the game speeds up
-2. Shoot continuously - there's a short cooldown between shots
-3. Focus on enemies at the top of the screen first
-4. Use the edges of the screen for strategic positioning
-5. Don't let enemies pile up - eliminate them quickly!
-6. Watch the scrolling palm trees - they can help you judge speed
-7. The further you travel, the faster everything moves - stay alert!
-8. Try to balance survival (avoiding enemies) with scoring (shooting enemies)
+2. **Watch out for palm trees!** They're obstacles that damage you - plan your route carefully
+3. Shoot continuously - there's a short cooldown between shots
+4. Focus on enemies at the top of the screen first
+5. Use the edges of the screen for strategic positioning, but watch for trees!
+6. Don't let enemies pile up - eliminate them quickly!
+7. Palm trees scroll down with the beach - use them to judge speed and plan movements
+8. The further you travel, the faster everything moves - stay alert!
+9. Try to balance survival (avoiding enemies AND obstacles) with scoring (shooting enemies)
 
 ## 🔧 Customization
 
