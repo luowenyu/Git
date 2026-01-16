@@ -149,11 +149,53 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
+class Cloud:
+    """Scrolling cloud object"""
+    def __init__(self):
+        self.x = random.randint(0, SCREEN_WIDTH)
+        self.y = random.randint(20, 150)
+        self.speed = random.uniform(0.5, 1.5)
+        self.size = random.randint(40, 80)
+
+    def update(self, scroll_speed):
+        self.y += scroll_speed * 0.3
+        if self.y > SCREEN_HEIGHT:
+            self.y = -50
+            self.x = random.randint(0, SCREEN_WIDTH)
+
+    def draw(self, screen):
+        # Draw fluffy cloud
+        pygame.draw.circle(screen, WHITE, (int(self.x), int(self.y)), self.size // 2)
+        pygame.draw.circle(screen, WHITE, (int(self.x + self.size // 3), int(self.y)), self.size // 3)
+        pygame.draw.circle(screen, WHITE, (int(self.x - self.size // 3), int(self.y)), self.size // 3)
+
+class PalmTree:
+    """Scrolling palm tree object"""
+    def __init__(self):
+        self.x = random.randint(50, SCREEN_WIDTH - 50)
+        self.y = random.randint(-200, SCREEN_HEIGHT - 200)
+        self.speed = 3
+
+    def update(self, scroll_speed):
+        self.y += scroll_speed
+        if self.y > SCREEN_HEIGHT + 100:
+            self.y = -100
+            self.x = random.randint(50, SCREEN_WIDTH - 50)
+
+    def draw(self, screen):
+        # Trunk
+        pygame.draw.rect(screen, (139, 90, 43), (int(self.x), int(self.y), 15, 80))
+        # Leaves
+        for angle in range(0, 360, 45):
+            end_x = self.x + 7 + int(30 * math.cos(math.radians(angle)))
+            end_y = self.y + int(20 * math.sin(math.radians(angle)))
+            pygame.draw.line(screen, GREEN, (int(self.x + 7), int(self.y)), (int(end_x), int(end_y)), 5)
+
 class BeachShooter:
     """Main game class"""
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Beach Shooter")
+        pygame.display.set_caption("Beach Shooter - Scrolling Edition")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
         self.small_font = pygame.font.Font(None, 24)
@@ -172,42 +214,55 @@ class BeachShooter:
         self.enemy_spawn_timer = 0
         self.game_over = False
         self.wave_number = 1
+        self.distance = 0
+        self.scroll_speed = 2
+
+        # Scrolling elements
+        self.clouds = [Cloud() for _ in range(5)]
+        self.palm_trees = [PalmTree() for _ in range(3)]
+        self.water_offset = 0
+        self.sand_offset = 0
 
     def draw_background(self):
-        """Draw the beach scene background"""
+        """Draw the scrolling beach scene background"""
         # Sky
         self.screen.fill(SKY_BLUE)
 
-        # Sun
+        # Clouds (parallax scrolling - slower)
+        for cloud in self.clouds:
+            cloud.draw(self.screen)
+
+        # Sun (fixed position)
         pygame.draw.circle(self.screen, YELLOW, (700, 80), 40)
         pygame.draw.circle(self.screen, ORANGE, (700, 80), 35)
 
-        # Ocean waves (animated)
+        # Ocean waves (animated and scrolling)
         wave_offset = (pygame.time.get_ticks() // 50) % 40
         for i in range(0, SCREEN_WIDTH + 40, 40):
+            wave_y = int(SCREEN_HEIGHT - 250 + self.water_offset % 40)
             pygame.draw.arc(self.screen, DARK_WATER,
-                          (i - wave_offset, SCREEN_HEIGHT - 250, 40, 30),
+                          (i - wave_offset, wave_y, 40, 30),
                           0, 3.14, 3)
 
-        # Water
+        # Water (with scrolling texture)
         pygame.draw.rect(self.screen, WATER, (0, SCREEN_HEIGHT - 200, SCREEN_WIDTH, 200))
 
-        # Sand
-        pygame.draw.ellipse(self.screen, SAND,
-                          (-50, SCREEN_HEIGHT - 150, SCREEN_WIDTH + 100, 180))
+        # Draw wave lines for water texture (scrolling)
+        for i in range(0, SCREEN_HEIGHT + 50, 50):
+            y_pos = int(SCREEN_HEIGHT - 200 + (i + self.water_offset) % SCREEN_HEIGHT)
+            if y_pos > SCREEN_HEIGHT - 200:
+                pygame.draw.line(self.screen, DARK_WATER, (0, y_pos), (SCREEN_WIDTH, y_pos), 1)
 
-        # Palm tree
-        self.draw_palm_tree(100, SCREEN_HEIGHT - 140)
+        # Sand (scrolling)
+        for i in range(-1, 3):
+            sand_y = int(SCREEN_HEIGHT - 150 + (i * 180) + self.sand_offset)
+            if sand_y < SCREEN_HEIGHT + 100:
+                pygame.draw.ellipse(self.screen, SAND,
+                                  (-50, sand_y, SCREEN_WIDTH + 100, 180))
 
-    def draw_palm_tree(self, x, y):
-        """Draw a simple palm tree"""
-        # Trunk
-        pygame.draw.rect(self.screen, (139, 90, 43), (x, y - 80, 15, 80))
-        # Leaves
-        for angle in range(0, 360, 45):
-            end_x = x + 7 + int(30 * math.cos(math.radians(angle)))
-            end_y = y - 80 + int(20 * math.sin(math.radians(angle)))
-            pygame.draw.line(self.screen, GREEN, (x + 7, y - 80), (end_x, end_y), 5)
+        # Palm trees (scrolling)
+        for tree in self.palm_trees:
+            tree.draw(self.screen)
 
     def draw_ui(self):
         """Draw the user interface"""
@@ -215,9 +270,13 @@ class BeachShooter:
         score_text = self.font.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(score_text, (10, 10))
 
+        # Distance traveled
+        distance_text = self.small_font.render(f"Distance: {int(self.distance)}m", True, WHITE)
+        self.screen.blit(distance_text, (10, 50))
+
         # Wave
         wave_text = self.small_font.render(f"Wave: {self.wave_number}", True, WHITE)
-        self.screen.blit(wave_text, (10, 50))
+        self.screen.blit(wave_text, (10, 75))
 
         # Health bar
         health_bar_width = 200
@@ -287,7 +346,22 @@ class BeachShooter:
                         self.__init__()
 
             if not self.game_over:
-                # Update
+                # Update scrolling
+                self.distance += self.scroll_speed * 0.5
+                self.water_offset += self.scroll_speed
+                self.sand_offset += self.scroll_speed * 1.5
+
+                # Update scrolling elements
+                for cloud in self.clouds:
+                    cloud.update(self.scroll_speed)
+                for tree in self.palm_trees:
+                    tree.update(self.scroll_speed)
+
+                # Gradually increase scroll speed
+                if self.distance % 100 < 1:
+                    self.scroll_speed = min(4, 2 + self.distance / 500)
+
+                # Update sprites
                 self.all_sprites.update()
 
                 # Spawn enemies
@@ -319,17 +393,21 @@ class BeachShooter:
 
                 game_over_text = self.font.render("GAME OVER!", True, RED)
                 score_text = self.font.render(f"Final Score: {self.score}", True, WHITE)
+                distance_text = self.font.render(f"Distance: {int(self.distance)}m", True, WHITE)
                 restart_text = self.small_font.render("Press R to Restart", True, WHITE)
 
                 self.screen.blit(game_over_text,
                                (SCREEN_WIDTH // 2 - game_over_text.get_width() // 2,
-                                SCREEN_HEIGHT // 2 - 60))
+                                SCREEN_HEIGHT // 2 - 90))
                 self.screen.blit(score_text,
                                (SCREEN_WIDTH // 2 - score_text.get_width() // 2,
-                                SCREEN_HEIGHT // 2))
+                                SCREEN_HEIGHT // 2 - 30))
+                self.screen.blit(distance_text,
+                               (SCREEN_WIDTH // 2 - distance_text.get_width() // 2,
+                                SCREEN_HEIGHT // 2 + 20))
                 self.screen.blit(restart_text,
                                (SCREEN_WIDTH // 2 - restart_text.get_width() // 2,
-                                SCREEN_HEIGHT // 2 + 60))
+                                SCREEN_HEIGHT // 2 + 80))
 
             pygame.display.flip()
 
